@@ -1,21 +1,20 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const { request } = require('express');
-var router = express.Router();
+const mongoose = require('mongoose');
+const cors = require('cors');
 
-PORT = process.env.PORT || 5000;
+require('dotenv').config();
+
+
+const PORT = process.env.PORT || 5000;
+const API_KEY = process.env.API_KEY;
+const uri = process.env.ATLAS_URI;
 
 var app = express();
+var router = express.Router();
 
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-app.use('/', router);
-app.use('/add', router);
-app.use('/dashboard', router);
-app.use('/history', router);
-app.use('/login', router);
-app.use('/createacc', router);
 
 /*
     all routes:
@@ -34,57 +33,40 @@ app.use('/createacc', router);
 */
 
 // --> /
-router.get('/', (req, res, next) => {
-    res.send('this is the home page');
-});
+const indexRouter = require('./routes/index');
+app.use('/', indexRouter);
 
 // --> /add
-router.get('/add', (req, res, next) => {
-    res.send('this is where you can add foods to today\'s entry');
-});
-
-router.post('/add', (req, res, next) => {
-    res.json(req.body);
-});
+const addRouter = require('./routes/add');
+app.use('/add', addRouter);
 
 // --> /dashboard
-router.get('/dashboard',  (req, res, next) => {
-    res.send('view today\'s nutrients');
-});
-
-router.post('/dashboard', (req, res, next) => {
-    res.json(request.body);
-});
+const dashboardRouter = require('./routes/dashboard');
+app.use('/dashboard', dashboardRouter);
 
 // --> /history
-router.get('/history', (req, res, next) => {
-    res.send('view the history of your nutrients');
-});
-
-router.post('/history', (req, res, next) => {
-    res.json(req.body);
-});
+const historyRouter = require('./routes/history');
+app.use('/history', historyRouter);
 
 // --> /login
-router.get('/login', (req, res, next) => {
-    res.send('login here');
-});
-
-router.post('/login', (req, res, next) => {
-    res.json(res.body);
-});
+const loginRouter = require('./routes/login');
+app.use('/login', loginRouter);
 
 // --> /createacc
-router.get('/createacc', (req, res, next) => {
-    res.send('create an account here');
-});
+const createaccRouter = require('./routes/createacc');
+app.use('/createacc', createaccRouter);
 
-router.post('/createacc', (req, res, next) => {
-    res.json(req.body);
+
+mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true})
+.then(() => {
+    console.log('Connected to MongoDB Atlas');
+})
+.catch(err => {
+    console.log(`Connection error: ${err.message}`);
 });
 
 app.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`)
+    console.log(`Listening on port ${PORT}`);
 });
 
 module.exports = router;
