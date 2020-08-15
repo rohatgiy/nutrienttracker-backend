@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 var entrySchema = new Schema({
-    foods: {type:Array, required: true}, // array of all of today's food codes
+    food_codes: {type:Array, required: true}, // array of all of today's food codes
+    food_names: {type: Array, required: true},
     nutrients: [
         {
             nutrient: {type: String, required: true},
