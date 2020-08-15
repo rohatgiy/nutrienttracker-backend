@@ -9,8 +9,7 @@ var entrySchema = new Schema({
             amount: {type: Number, required: true}
         }
     ],
-    date: {type: Date, default: Date.now},
-    fulfilled: Boolean
+    date: {type: Date, default: Date.now}
 });
 
 module.exports=mongoose.model("Entry", entrySchema);
