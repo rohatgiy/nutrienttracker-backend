@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+var date = new Date();
+
 var entrySchema = new Schema({
     food_codes: {type:Array, required: true}, // array of all of today's food codes
     food_names: {type: Array, required: true},
@@ -10,7 +12,7 @@ var entrySchema = new Schema({
             amount: {type: Number, required: true}
         }
     ],
-    date: {type: Date, default: Date.now}
+    date: {type: Date, default: new Date(date.getFullYear(), date.getMonth(), date.getDate())}
 });
 
-module.exports=mongoose.model("Entry", entrySchema);
+module.exports=mongoose.model("Entry", entrySchema, 'entries');

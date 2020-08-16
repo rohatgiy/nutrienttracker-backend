@@ -4,7 +4,6 @@ const cors = require('cors');
 
 require('dotenv').config();
 
-
 const PORT = process.env.PORT || 5000;
 const API_KEY = process.env.API_KEY;
 const uri = process.env.ATLAS_URI;
@@ -32,6 +31,16 @@ app.use(express.urlencoded({ extended: false }));
             methods: GET, POST
 */
 
+mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true})
+.then(() => {
+    console.log('Connected to MongoDB Atlas');
+})
+.catch(err => {
+    console.log(`Connection error: ${err.message}`);
+});
+
+global.db = mongoose.connection;
+
 // --> /
 const indexRouter = require('./routes/index');
 app.use('/', indexRouter);
@@ -56,14 +65,9 @@ app.use('/login', loginRouter);
 const createaccRouter = require('./routes/createacc');
 app.use('/createacc', createaccRouter);
 
-
-mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true})
-.then(() => {
-    console.log('Connected to MongoDB Atlas');
-})
-.catch(err => {
-    console.log(`Connection error: ${err.message}`);
-});
+// --> /test
+const testRouter = require('./routes/test');
+app.use('/test', testRouter);
 
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
