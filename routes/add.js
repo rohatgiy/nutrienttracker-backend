@@ -5,7 +5,6 @@ const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const API_KEY = process.env.API_KEY;
 var Entry = require('../models/entry');
 const { db } = require('../models/entry');
-var link = "https://food-nutrition.canada.ca/api/canadian-nutrient-file/food/?lang=en&type=json";
 
 // energy (kcal) is calories
 // retinol is vit a
@@ -22,7 +21,7 @@ var callFoodAPI = function (req, res, next)
 {
     var request = new XMLHttpRequest;
     res.locals.response = "";
-    request.open("GET", link, false);
+    request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/food/?lang=en&type=json", false);
     request.onload = () => {
         res.locals.response = request.responseText;
     }
@@ -53,10 +52,7 @@ var callNutrientAPI = function(req, res, next)
             })
         }
     }
-
     res.locals.nutrients_to_add = res.locals.nutrients_to_add;
-
-    console.log(`inside ${res.locals.nutrients_to_add}`);
     next();
 }
 
@@ -67,8 +63,6 @@ router.get('/', callFoodAPI, (req, res, next) => {
 
 router.post('/', callNutrientAPI, (req, res, next) => {
     var nutrients = res.locals.nutrients_to_add;
-
-    console.log(nutrients);
 
     var date = new Date();
 

@@ -65,10 +65,6 @@ app.use('/login', loginRouter);
 const createaccRouter = require('./routes/createacc');
 app.use('/createacc', createaccRouter);
 
-// --> /test
-const testRouter = require('./routes/test');
-app.use('/test', testRouter);
-
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
 });
