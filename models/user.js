@@ -7,6 +7,8 @@ var userSchema = new Schema({
     password: {type: String, required: true, minlength: 8},
     firstname: {type: String, required: true},
     entries:[entrySchema],
+    gender: {type: String, enum: ["male", "female"], required: true},
+    age: {type: Number, required: true, min: 11}
 });
 
 module.exports=mongoose.model('User', userSchema, 'users');
