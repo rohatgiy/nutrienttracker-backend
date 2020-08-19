@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: false }));
         /add - add a food to today's entry
             methods: GET, POST
         /dashboard - shows today's nutrients
-            methods: GET, POST
+            methods: GET
         /history - shows history of nutrients 
             methods: GET, POST(?)
         /login - where user logs in

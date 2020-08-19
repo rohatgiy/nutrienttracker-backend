@@ -1,11 +1,12 @@
 const router = require('express').Router();
+var Entry = require('../models/entry');
+
+date = new Date();
 
 router.get('/',  (req, res, next) => {
-    res.send('view today\'s nutrients');
-});
-
-router.post('/', (req, res, next) => {
-    res.json(req.body);
+    Entry.find({ date: new Date(date.getFullYear(), date.getMonth(), date.getDate())}).then((doc) => {
+        res.send(doc);
+    });
 });
 
 module.exports = router;
