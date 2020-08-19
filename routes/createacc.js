@@ -12,9 +12,16 @@ router.post('/', (req, res, next) => {
         username: req.body.username,
         password: req.body.password,
         firstname: req.body.firstname,
-        entries: []
+        entries: [],
+        age: req.body.age,
+        gender: req.body.gender
     });
-    user.save();
+    user.save()
+    .catch(err => {
+        console.log('Error ' + err);
+    }
+
+    );
 
     res.json(req.body);
 });

@@ -3,12 +3,12 @@ const Schema = mongoose.Schema;
 var entrySchema = require('./entry').schema;
 
 var userSchema = new Schema({
-    username: {type: String, required: true, unique: true, minlength: 5, trim: true},
+    username: {type: String, required: true, unique: true, minlength: 5, trim: true, lowercase: true},
     password: {type: String, required: true, minlength: 8},
     firstname: {type: String, required: true},
     entries:[entrySchema],
     gender: {type: String, enum: ["male", "female"], required: true},
-    age: {type: Number, required: true, min: 11}
+    age: {type: String, enum: ["11-14", "15-18", "19-24", "25-50", "51+"], required: true}
 });
 
 module.exports=mongoose.model('User', userSchema, 'users');

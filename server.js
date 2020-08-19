@@ -49,6 +49,10 @@ app.use('/', indexRouter);
 const addRouter = require('./routes/add');
 app.use('/add', addRouter);
 
+// --> /edit
+const editRouter = require('./routes/edit');
+app.use('/edit', editRouter);
+
 // --> /dashboard
 const dashboardRouter = require('./routes/dashboard');
 app.use('/dashboard', dashboardRouter);
@@ -64,6 +68,15 @@ app.use('/login', loginRouter);
 // --> /createacc
 const createaccRouter = require('./routes/createacc');
 app.use('/createacc', createaccRouter);
+
+// --> /editacc
+const editaccRouter = require('./routes/editacc');
+app.use('/editacc', editaccRouter);
+
+// --> /test
+const testRouter = require('./routes/test');
+app.use('/test', testRouter);
+
 
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
