@@ -1,4 +1,5 @@
 const router = require('express').Router();
+var userController = require('../controllers/userController');
 
 router.get('/', (req, res, next) => {
     res.send('login here');
