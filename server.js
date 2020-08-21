@@ -1,5 +1,8 @@
 const express = require('express');
+const session = require('express-session');
 const mongoose = require('mongoose');
+const passport = require('passport');
+
 const cors = require('cors');
 
 require('dotenv').config();
@@ -11,9 +14,13 @@ const uri = process.env.ATLAS_URI;
 var app = express();
 var router = express.Router();
 
-app.use(cors())
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(session);
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 /*
     all routes:

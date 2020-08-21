@@ -1,23 +1,45 @@
 const passport = require('passport');
-var LocalStrategy = require('passport').Strategy;
+var LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 var User = require('../models/user');
 
-exports.login_user_post = passport.use(new LocalStrategy(
+passport.use(new LocalStrategy(
     (username, password, done) => {
         User.findOne({username: username}, (err, user) => {
             if (err) { return done(err); }
             if (!user) { 
                 return done(null, false, { message: 'Incorrect username.' });
             }
-            if (!user.validPassword(passowrd)) {
-                return done(null, false, { message: 'Incorrect password.' });
-            }
 
-            return done(null, user);
-
+            bcrypt.compare(password, user.password, (err, result) => {
+                if (err)
+                {
+                    return done(err);
+                }
+                else
+                {
+                    if (result)
+                    {
+                        return done(null, user);
+                    }
+                    else
+                    {
+                        return done(null, false, { message: 'Incorrect password.' });
+                    }
+                }
+            });
         });
 }));
+
+exports.login_user_post = (req, res) => {
+
+    passport.authenticate('local', 
+    {successRedirect: '/test/success', failureRedirect: '/test/failure', failureFlash: false});
+
+    res.json(req.body);
+
+}
+    
 
 exports.create_user_post = (req, res) => {
     var plainTextPassword = req.body.password;

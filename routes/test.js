@@ -14,4 +14,12 @@ router.get('/entries', (req, res, next) => {
     });
 });
 
+router.get('/success', (req, res, next) => {
+    res.send('sucess!');
+});
+
+router.get('/failure', (req, res, next) => {
+    res.send('failure');
+})
+
 module.exports = router;
