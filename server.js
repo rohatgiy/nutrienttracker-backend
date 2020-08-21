@@ -17,9 +17,9 @@ var router = express.Router();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(session);
+//app.use(session);
 app.use(passport.initialize());
-app.use(passport.session());
+//app.use(passport.session());
 
 
 /*

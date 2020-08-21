@@ -3,7 +3,7 @@ var LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 var User = require('../models/user');
 
-passport.use(new LocalStrategy(
+passport.use(new LocalStrategy({usernameField:'username', passwordField:'password'},
     (username, password, done) => {
         User.findOne({username: username}, (err, user) => {
             if (err) { return done(err); }
@@ -12,20 +12,16 @@ passport.use(new LocalStrategy(
             }
 
             bcrypt.compare(password, user.password, (err, result) => {
-                if (err)
+                
+                if (result)
                 {
-                    return done(err);
+                    console.log("logged in");
+                    return done(null, user);
                 }
                 else
                 {
-                    if (result)
-                    {
-                        return done(null, user);
-                    }
-                    else
-                    {
-                        return done(null, false, { message: 'Incorrect password.' });
-                    }
+                    console.log("login failed");
+                    return done(null, false, { message: 'Incorrect password.' });
                 }
             });
         });
@@ -33,13 +29,30 @@ passport.use(new LocalStrategy(
 
 exports.login_user_post = (req, res) => {
 
-    passport.authenticate('local', 
-    {successRedirect: '/test/success', failureRedirect: '/test/failure', failureFlash: false});
+    console.log('try to login');
 
-    res.json(req.body);
+    passport.authenticate('local', (err, user, info) => {
+        if (err)
+        {
+            return res.status(401).json(err); 
+        }
+        if (user)
+        {
+            console.log('logged in');
+            console.log(user);
+            return res.status(200).json({
+                'status': 'success',
+                'user': req.body.username,
+                'password': req.body.password
+            });
+        }
+        else
+        {
+            return res.status(401).json(info);
+        }
+    })(req, res)
 
 }
-    
 
 exports.create_user_post = (req, res) => {
     var plainTextPassword = req.body.password;
