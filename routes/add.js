@@ -29,6 +29,17 @@ var callFoodAPI = function (req, res, next)
     next();
 }
 
+var callServingSizeAPI = function (req, res, next)
+{
+    var request = new XMLHttpRequest;
+    var servingSizeResponse = "";
+    request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/servingsize/?lang=en&type=json&id="+req.body.food_code, false);
+    request.onload = () => {
+        servingSizeResponse = JSON.parse(request.responseText);
+    }
+    request.send();
+}
+
 var callNutrientAPI = function(req, res, next)
 {
     console.log(req.body.food_code);
