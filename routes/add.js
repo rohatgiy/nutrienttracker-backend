@@ -32,12 +32,13 @@ var callFoodAPI = function (req, res, next)
 var callServingSizeAPI = function (req, res, next)
 {
     var request = new XMLHttpRequest;
-    var servingSizeResponse = "";
+    res.locals.serving_sizes = "";
     request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/servingsize/?lang=en&type=json&id="+req.body.food_code, false);
     request.onload = () => {
-        servingSizeResponse = JSON.parse(request.responseText);
+        res.locals.serving_sizes = request.responseText;
     }
     request.send();
+    next();
 }
 
 var callNutrientAPI = function(req, res, next)
@@ -67,9 +68,9 @@ var callNutrientAPI = function(req, res, next)
     next();
 }
 
-router.get('/', callFoodAPI, (req, res, next) => {
-    const {response} = res.locals;
-    res.send('this is where you can add foods to today\'s entry, <br><br>' + response);
+router.get('/', callFoodAPI, callServingSizeAPI, (req, res, next) => {
+    const {foods} = res.locals;
+    res.send('this is where you can add foods to today\'s entry, <br><br>' + foods);
 });
 
 router.post('/', callNutrientAPI, (req, res, next) => {
