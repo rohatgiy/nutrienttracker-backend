@@ -1,11 +1,15 @@
+const Entry = require('../models/entry');
 const router = require('express').Router();
 
 router.get('/', (req, res, next) => {
-    res.send('view the history of your nutrients');
-});
-
-router.post('/', (req, res, next) => {
-    res.json(req.body);
+    var date = new Date();
+    var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    Entry.find({date: {$ne: today}}).then((doc) => {
+        res.send(doc);
+    }).catch((err) =>
+    {
+        console.log("error: " + err);
+    })
 });
 
 module.exports = router;

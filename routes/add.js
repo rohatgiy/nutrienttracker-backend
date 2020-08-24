@@ -33,7 +33,7 @@ var callServingSizeAPI = function (req, res, next)
 {
     var request = new XMLHttpRequest;
     res.locals.serving_sizes = "";
-    request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/servingsize/?lang=en&type=json&id="+req.body.food_code, false);
+    request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/servingsize/?lang=en&type=json", false);
     request.onload = () => {
         res.locals.serving_sizes = request.responseText;
     }
@@ -43,7 +43,6 @@ var callServingSizeAPI = function (req, res, next)
 
 var callNutrientAPI = function(req, res, next)
 {
-    console.log(req.body.food_code);
     var request = new XMLHttpRequest;
     var nutrientResponse= "";
     request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/nutrientamount/?lang=en&type=json&id="+req.body.food_code, false);
@@ -60,7 +59,7 @@ var callNutrientAPI = function(req, res, next)
         {
             res.locals.nutrients_to_add.push({
                 "nutrient": nutrientResponse[i].nutrient_web_name,
-                "amount": nutrientResponse[i].nutrient_value
+                "amount": nutrientResponse[i].nutrient_value*req.body.conversion_factor_value
             })
         }
     }
@@ -69,8 +68,10 @@ var callNutrientAPI = function(req, res, next)
 }
 
 router.get('/', callFoodAPI, callServingSizeAPI, (req, res, next) => {
-    const {foods} = res.locals;
-    res.send('this is where you can add foods to today\'s entry, <br><br>' + foods);
+    var foods = res.locals.response;
+    var serving_sizes = res.locals.serving_sizes;
+    
+    res.send('this is where you can add foods to today\'s entry, <br><br>' + serving_sizes + '<br><br>' + foods);
 });
 
 router.post('/', callNutrientAPI, (req, res, next) => {
@@ -93,7 +94,7 @@ router.post('/', callNutrientAPI, (req, res, next) => {
         var entry = new Entry(
             {
                 food_codes: [req.body.food_code],
-                food_names: [req.body.food_description],
+                food_names: [req.body.food_description+ ' '+ req.body.measure_name],
                 nutrients: nutrients
             }
         );
