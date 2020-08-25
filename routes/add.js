@@ -4,8 +4,10 @@ const mongoose = require('mongoose');
 const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const API_KEY = process.env.API_KEY;
 var Entry = require('../models/entry');
+var User = require('../models/user');
 const { db } = require('../models/entry');
 const e = require('express');
+const user = require('../models/user');
 
 // energy (kcal) is calories
 // retinol is vit a
@@ -97,17 +99,24 @@ router.post('/', callNutrientAPI, (req, res, next) => {
 
         var date = new Date();
 
-        var check = Entry.find(
+        User.find(
             {
-                date: new Date(date.getFullYear(), date.getMonth(), date.getDate())
+                "entries.date": new Date(date.getFullYear(), date.getMonth(), date.getDate())
+                // date: new Date(date.getFullYear(), date.getMonth(), date.getDate())
             }
         ).then((doc) => {
             today.push(doc);
         })
 
+        console.log(today);
+
         if (today.length > 0)
         {
             console.log(today);
+            // today[0].food_codes.push(req.body.food_code);
+            // today[0].food_names.push(req.body.food_description);
+            // today[0].nutrients.push(nutrients);
+            // req.user.save();
         }
         else
         {
@@ -118,9 +127,10 @@ router.post('/', callNutrientAPI, (req, res, next) => {
                     nutrients: nutrients
                 }
             );
-            entry.save();
+            req.user.entries.push(entry);
+            req.user.save();
         }
-        res.json(req.body);
+        res.json(req.user);
     }
 });
 
