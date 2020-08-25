@@ -1,5 +1,6 @@
 const Entry = require('../models/entry');
 const router = require('express').Router();
+// need to make sure entries get added to users array
 
 router.get('/', (req, res, next) => {
     var date = new Date();

@@ -5,6 +5,7 @@ const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const API_KEY = process.env.API_KEY;
 var Entry = require('../models/entry');
 const { db } = require('../models/entry');
+const e = require('express');
 
 // energy (kcal) is calories
 // retinol is vit a
@@ -68,39 +69,59 @@ var callNutrientAPI = function(req, res, next)
 }
 
 router.get('/', callFoodAPI, callServingSizeAPI, (req, res, next) => {
-    var foods = res.locals.response;
-    var serving_sizes = res.locals.serving_sizes;
-    
-    res.send('this is where you can add foods to today\'s entry, <br><br>' + serving_sizes + '<br><br>' + foods);
-});
-
-router.post('/', callNutrientAPI, (req, res, next) => {
-    var nutrients = res.locals.nutrients_to_add;
-
-    var date = new Date();
-
-    var check = Entry.find(
-        {
-            date: new Date(date.getFullYear(), date.getMonth(), date.getDate())
-        }, (err, docs) => {}
-    );
-
-    if (!check)
+    if (req.user)
     {
-        // check if an entry exists for today, if not, create one, otherwise add the new food to the entry
+        var foods = res.locals.response;
+        var serving_sizes = res.locals.serving_sizes;
+
+        res.send('you can add food here');
     }
     else
     {
-        var entry = new Entry(
-            {
-                food_codes: [req.body.food_code],
-                food_names: [req.body.food_description+ ' '+ req.body.measure_name],
-                nutrients: nutrients
-            }
-        );
-        entry.save();
+        res.redirect('/login');
     }
-    res.json(req.body);
+    
+    
+    //res.send('this is where you can add foods to today\'s entry, <br><br>' + serving_sizes + '<br><br>' + foods);
+});
+
+router.post('/', callNutrientAPI, (req, res, next) => {
+    if (!req.user)
+    {
+        res.redirect('/login');
+    }
+    else
+    {
+        var nutrients = res.locals.nutrients_to_add;
+        var today = [];
+
+        var date = new Date();
+
+        var check = Entry.find(
+            {
+                date: new Date(date.getFullYear(), date.getMonth(), date.getDate())
+            }
+        ).then((doc) => {
+            today.push(doc);
+        })
+
+        if (today.length > 0)
+        {
+            console.log(today);
+        }
+        else
+        {
+            var entry = new Entry(
+                {
+                    food_codes: [req.body.food_code],
+                    food_names: [req.body.food_description+ ' '+ req.body.measure_name],
+                    nutrients: nutrients
+                }
+            );
+            entry.save();
+        }
+        res.json(req.body);
+    }
 });
 
 module.exports = router;
