@@ -1,13 +1,25 @@
 const router = require('express').Router();
 var Entry = require('../models/entry');
-// need to make sure entries get added to user's array
+const e = require('express');
 
 date = new Date();
 
 router.get('/',  (req, res, next) => {
-    Entry.find({ date: new Date(date.getFullYear(), date.getMonth(), date.getDate())}).then((doc) => {
-        res.send(doc);
-    });
+    if (req.user)
+    {
+        for (i = req.user.entries.length-1 ; i >= 0; --i)
+        {
+            if (req.user.entries[i].date.getTime() === new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime())
+            {
+                res.send(req.user.entries[i]);
+            }
+        }
+    }
+    else
+    {
+        res.redirect('/login');
+    }
+    
 });
 
 module.exports = router;

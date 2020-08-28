@@ -14,9 +14,11 @@ const user = require('../models/user');
 // tocopherol is vit e
 // search up fat limits
 
-const tracked = ['Energy (kcal)', 'Protein', 'Retinol', 'Vitamin D', 'Tocopherol, alpha', 'Vitamin K', 
-'Vitamin C', 'Thiamin', 'Riboflavin', 'Niacin', 'Vitamin B-6', 'Folate, naturally occurring', 'Vitamin B-12', 
-'Calcium, Ca', 'Phosphorus, P', 'Magnesium, Mg', 'Iron, Fe', 'Zinc, Zn', 'Selenium, Se', 'Total Fat'];
+const tracked = ['Energy (kcal)' /* kcal */, 'Protein' /* g */, 'Retinol' /* µg */, 'Vitamin D' /* µg */, 
+'Tocopherol, alpha' /* mg */, 'Vitamin K' /* µg */, 'Vitamin C' /* mg */, 'Thiamin' /* mg */, 'Riboflavin' /* mg */, 
+'Niacin' /* mg */, 'Vitamin B-6' /* mg */, 'Folate, naturally occurring' /* µg */, 'Vitamin B-12' /* µg */, 
+'Calcium, Ca' /* mg */, 'Phosphorus, P' /* mg */, 'Magnesium, Mg' /* mg */, 'Iron, Fe' /* mg */, 'Zinc, Zn' /* mg */,
+'Selenium, Se' /* µg */, 'Total Fat' /* g */];
 
 router.use(express.json());
 
