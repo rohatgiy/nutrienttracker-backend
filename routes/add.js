@@ -95,35 +95,34 @@ router.post('/', callNutrientAPI, (req, res, next) => {
     else
     {
         var nutrients = res.locals.nutrients_to_add;
-        var today = [];
+        var today_entries = req.user.entries;
 
         var date = new Date();
 
-        User.find(
-            {
-                "entries.date": new Date(date.getFullYear(), date.getMonth(), date.getDate())
-                // date: new Date(date.getFullYear(), date.getMonth(), date.getDate())
-            }
-        ).then((doc) => {
-            today.push(doc);
-        })
-
-        console.log(today);
-
-        if (today.length > 0)
+        if (today_entries.length > 0 && today_entries[today_entries.length-1].date.getTime() === new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime())
         {
-            console.log(today);
-            // today[0].food_codes.push(req.body.food_code);
-            // today[0].food_names.push(req.body.food_description);
-            // today[0].nutrients.push(nutrients);
-            // req.user.save();
+            today_entries[today_entries.length-1].food_codes.push(req.body.food_code);
+            today_entries[today_entries.length-1].food_names.push(req.body.food_description+ ', '+ req.body.measure_name);
+            for (i = 0; i < nutrients.length; ++i)
+            {
+                for (j = 0; j < req.user.entries[req.user.entries.length-1].nutrients.length; ++j)
+                {
+                    if (nutrients[i].nutrient === req.user.entries[req.user.entries.length-1].nutrients[j].nutrient)
+                    {
+                        console.log('in db: ' + req.user.entries[req.user.entries.length-1].nutrients[j].amount);
+                        console.log('to add: ' + nutrients[i].amount);
+                        req.user.entries[req.user.entries.length-1].nutrients[j].amount += nutrients[i].amount;
+                    }
+                }
+            }
+            req.user.save();          
         }
         else
         {
             var entry = new Entry(
                 {
                     food_codes: [req.body.food_code],
-                    food_names: [req.body.food_description+ ' '+ req.body.measure_name],
+                    food_names: [req.body.food_description+ ', '+ req.body.measure_name],
                     nutrients: nutrients
                 }
             );
