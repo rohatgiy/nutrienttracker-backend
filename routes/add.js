@@ -20,8 +20,6 @@ const tracked = ['Energy (kcal)' /* kcal */, 'Protein' /* g */, 'Retinol' /* µg
 'Calcium, Ca' /* mg */, 'Phosphorus, P' /* mg */, 'Magnesium, Mg' /* mg */, 'Iron, Fe' /* mg */, 'Zinc, Zn' /* mg */,
 'Selenium, Se' /* µg */, 'Total Fat' /* g */];
 
-router.use(express.json());
-
 var callFoodAPI = function (req, res, next) 
 {
     var request = new XMLHttpRequest;
@@ -71,6 +69,9 @@ var callNutrientAPI = function(req, res, next)
     res.locals.nutrients_to_add = res.locals.nutrients_to_add;
     next();
 }
+
+
+router.use(express.json());
 
 router.get('/', callFoodAPI, callServingSizeAPI, (req, res, next) => {
     if (req.user)

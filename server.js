@@ -56,6 +56,10 @@ app.use('/', indexRouter);
 const addRouter = require('./routes/add');
 app.use('/add', addRouter);
 
+// --> /api
+const apiRouter = require('./routes/api');
+app.use('/api', apiRouter)
+
 // --> /edit
 const editRouter = require('./routes/edit');
 app.use('/edit', editRouter);
