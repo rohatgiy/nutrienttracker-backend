@@ -9,7 +9,8 @@ var entrySchema = new Schema({
     nutrients: [
         {
             nutrient: {type: String, required: true},
-            amount: {type: Number, required: true}
+            amount: {type: Number, required: true},
+            unit: {type: String, required: true}
         }
     ],
     date: {type: Date, default: new Date(date.getFullYear(), date.getMonth(), date.getDate())}

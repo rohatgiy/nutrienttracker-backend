@@ -1,13 +1,8 @@
 const express = require('express');
 const router = require('express').Router();
-const mongoose = require('mongoose');
-const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+const fs = require('fs');
 const API_KEY = process.env.API_KEY;
 var Entry = require('../models/entry');
-var User = require('../models/user');
-const { db } = require('../models/entry');
-const e = require('express');
-const user = require('../models/user');
 
 // energy (kcal) is calories
 // retinol is vit a
@@ -20,100 +15,87 @@ const tracked = ['Energy (kcal)' /* kcal */, 'Protein' /* g */, 'Retinol' /* µg
 'Calcium, Ca' /* mg */, 'Phosphorus, P' /* mg */, 'Magnesium, Mg' /* mg */, 'Iron, Fe' /* mg */, 'Zinc, Zn' /* mg */,
 'Selenium, Se' /* µg */, 'Total Fat' /* g */];
 
-var callFoodAPI = function (req, res, next) 
+var getNutrients = function (req, res, next)
 {
-    var request = new XMLHttpRequest;
-    res.locals.response = "";
-    request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/food/?lang=en&type=json", false);
-    request.onload = () => {
-        res.locals.response = request.responseText;
-    }
-    request.send();
-    next();
-}
-
-var callServingSizeAPI = function (req, res, next)
-{
-    var request = new XMLHttpRequest;
-    res.locals.serving_sizes = "";
-    request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/servingsize/?lang=en&type=json", false);
-    request.onload = () => {
-        res.locals.serving_sizes = request.responseText;
-    }
-    request.send();
-    next();
-}
-
-var callNutrientAPI = function(req, res, next)
-{
-    var request = new XMLHttpRequest;
-    var nutrientResponse= "";
-    request.open("GET", "https://food-nutrition.canada.ca/api/canadian-nutrient-file/nutrientamount/?lang=en&type=json&id="+req.body.food_code, false);
-    request.onload = () => {
-        nutrientResponse = JSON.parse(request.responseText);
-    }
-    request.send();
-
-    res.locals.nutrients_to_add = [];
-
-    for (i = 0; i < nutrientResponse.length; ++i)
-    {
-        if (nutrientResponse[i].nutrient_value !== 0.0 && tracked.includes(nutrientResponse[i].nutrient_web_name))
+    fs.readFile('foods_formatted.json', 'utf8', (err, data) => {
+        if (err)
         {
-            res.locals.nutrients_to_add.push({
-                "nutrient": nutrientResponse[i].nutrient_web_name,
-                "amount": nutrientResponse[i].nutrient_value*req.body.conversion_factor_value
-            })
+            return console.log(err)
         }
-    }
-    res.locals.nutrients_to_add = res.locals.nutrients_to_add;
-    next();
+        obj = JSON.parse(data);
+        var check = Number(req.body.food_code);
+        var serving = Number(req.body.serving_index);
+        var found = false;
+        var sendString = "";
+        for (i = 0; i < obj.length; ++i)
+        {
+            if (obj[i].food_code === check)
+            {
+                found = true;
+                
+                scaled_nutrients = [];
+                for (j = 0; j < obj[i].nutrients.length; ++j)
+                {
+                    scaled_nutrients.push({"nutrient": obj[i].nutrients[j].nutrient_name,
+                        "amount": obj[i].nutrients[j].nutrient_amount * obj[i].serving_sizes[serving].conversion_factor,
+                        "unit": obj[i].nutrients[j].unit});
+                }
+                food_obj = {"food_name": obj[i].food_name,
+                        "food_code": obj[i].food_code,
+                        "serving_size": obj[i].serving_sizes[serving].serving_description,
+                        "nutrients": scaled_nutrients};
+                res.locals.food_obj = food_obj;
+                next();
+            }
+        }
+        if (!found)
+        {
+            res.locals.food_obj = {
+                "error": "food not found"
+            }
+            next();
+        }
+    })
 }
-
 
 router.use(express.json());
 
-router.get('/', callFoodAPI, callServingSizeAPI, (req, res, next) => {
+router.get('/', (req, res, next) => {
     if (req.user)
     {
-        var foods = res.locals.response;
-        var serving_sizes = res.locals.serving_sizes;
-
         res.send('you can add food here');
     }
     else
     {
         res.redirect('/login');
     }
-    
-    
-    //res.send('this is where you can add foods to today\'s entry, <br><br>' + serving_sizes + '<br><br>' + foods);
 });
 
-router.post('/', callNutrientAPI, (req, res, next) => {
+
+router.post('/', getNutrients, (req, res, next) => {
     if (!req.user)
     {
         res.redirect('/login');
     }
     else
     {
-        var nutrients = res.locals.nutrients_to_add;
+        var nutrients = res.locals.food_obj.nutrients;
         var today_entries = req.user.entries;
 
         var date = new Date();
 
         if (today_entries.length > 0 && today_entries[today_entries.length-1].date.getTime() === new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime())
         {
-            today_entries[today_entries.length-1].food_codes.push(req.body.food_code);
-            today_entries[today_entries.length-1].food_names.push(req.body.food_description+ ', '+ req.body.measure_name);
+            today_entries[today_entries.length-1].food_codes.push(res.locals.food_obj.food_code);
+            today_entries[today_entries.length-1].food_names.push(res.locals.food_obj.food_name+ ', '+ res.locals.food_obj.serving_size);
             for (i = 0; i < nutrients.length; ++i)
             {
                 for (j = 0; j < req.user.entries[req.user.entries.length-1].nutrients.length; ++j)
                 {
                     if (nutrients[i].nutrient === req.user.entries[req.user.entries.length-1].nutrients[j].nutrient)
                     {
-                        console.log('in db: ' + req.user.entries[req.user.entries.length-1].nutrients[j].amount);
-                        console.log('to add: ' + nutrients[i].amount);
+                        // console.log('in db: ' + req.user.entries[req.user.entries.length-1].nutrients[j].amount);
+                        // console.log('to add: ' + nutrients[i].amount);
                         req.user.entries[req.user.entries.length-1].nutrients[j].amount += nutrients[i].amount;
                     }
                 }
@@ -124,8 +106,8 @@ router.post('/', callNutrientAPI, (req, res, next) => {
         {
             var entry = new Entry(
                 {
-                    food_codes: [req.body.food_code],
-                    food_names: [req.body.food_description+ ', '+ req.body.measure_name],
+                    food_codes: [res.locals.food_obj.food_code],
+                    food_names: [res.locals.food_obj.food_name+ ', '+ res.locals.food_obj.serving_size],
                     nutrients: nutrients
                 }
             );
