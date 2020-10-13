@@ -42,6 +42,7 @@ var getNutrients = function (req, res, next)
                 }
                 food_obj = {"food_name": obj[i].food_name,
                         "food_code": obj[i].food_code,
+                        "conversion_factor": obj[i].serving_sizes[serving].conversion_factor,
                         "serving_size": obj[i].serving_sizes[serving].serving_description,
                         "nutrients": scaled_nutrients};
                 res.locals.food_obj = food_obj;
@@ -88,6 +89,7 @@ router.post('/', getNutrients, (req, res, next) => {
         {
             today_entries[today_entries.length-1].food_codes.push(res.locals.food_obj.food_code);
             today_entries[today_entries.length-1].food_names.push(res.locals.food_obj.food_name+ ', '+ res.locals.food_obj.serving_size);
+            today_entries[today_entries.length-1].conversion_factors.push(res.locals.food_obj.conversion_factor);
             for (i = 0; i < nutrients.length; ++i)
             {
                 for (j = 0; j < req.user.entries[req.user.entries.length-1].nutrients.length; ++j)
@@ -107,6 +109,7 @@ router.post('/', getNutrients, (req, res, next) => {
             var entry = new Entry(
                 {
                     food_codes: [res.locals.food_obj.food_code],
+                    conversion_factors: [res.locals.food_obj.conversion_factor],
                     food_names: [res.locals.food_obj.food_name+ ', '+ res.locals.food_obj.serving_size],
                     nutrients: nutrients
                 }
