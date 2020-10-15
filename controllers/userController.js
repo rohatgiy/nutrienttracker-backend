@@ -72,6 +72,7 @@ const validateUserCreation =
     [
         validator.body('firstname').trim().isLength({ min: 1 }).withMessage('Must have a firstname').isAlpha()
         .withMessage('First name can only contain letters'),
+
         validator.body('username').trim().isAlphanumeric().withMessage("Username can only contain letters and numbers")
         .isLength({ min: 5, max: 15 }).withMessage("Username must be between 4 and 15 characters")
             .custom((value, { req }) => {
@@ -87,7 +88,9 @@ const validateUserCreation =
                     });
                 });
             }),
+
         validator.body('password', 'Password must be 8 or more characters').isLength({ min: 8 }),
+
         validator.body('conf_password', 'Passwords do not match, try again').custom(function (value, { req }) {
             if (value === req.body.password) {
                 return true;
@@ -96,8 +99,11 @@ const validateUserCreation =
                 throw new Error("Passwords do not match");
             }
         }),
+
         validator.body('age').isIn(["11-14", "15-18", "19-24", "25-50", "51+"]),
+
         validator.body('gender').isIn(["male", "female"]),
+
         validator.check(['username', 'firstname', 'password', 'conf_password', 'age', 'gender']).escape()
     ]
 
@@ -128,7 +134,7 @@ exports.create_user_post = [validateUserCreation, (req, res) => {
     else
     {
         console.log("couldn't create user")
-        res.redirect('/createacc')
+        res.send(validator.validationResult(req).errors[0].msg)
     }
     
 }]
