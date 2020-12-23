@@ -99,6 +99,9 @@ app.use('/editacc', editaccRouter);
 const testRouter = require('./routes/test');
 app.use('/test', testRouter);
 
+const logoutRouter = require("./routes/logout");
+app.use('/logout', logoutRouter);
+
 
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
