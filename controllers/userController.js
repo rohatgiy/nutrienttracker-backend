@@ -1,16 +1,8 @@
 const passport = require('passport');
-// var LocalStrategy = require('passport-local').Strategy;
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-// const validator = require('express-validator');
+var LocalStrategy = require('passport-local').Strategy;
+const validator = require('express-validator');
 const bcrypt = require('bcrypt');
 var User = require('../models/user');
-const jwt = require("jsonwebtoken")
-require("dotenv").config()
-
-const validateCreateAccInput = require("../validation/createacc");
-const validateLoginInput = require("../validation/login");
-const { body } = require('express-validator');
 
 const males11to14 = [{"calories":2500, "protein":45, "vitamin a": 1000, "vitamin d": 10, 
 "vitamin e": 10, "vitamin k": 45, "vitamin c": 50, "thiamin": 1.3, "riboflavin": 1.5, "niacin": 17, 
@@ -66,209 +58,186 @@ const femalesOver51 = [{"calories":1900,"protein":50, "vitamin a": 800, "vitamin
 "vitamin b6": 0.0016, "folate": 180, "vitamin b12": 2000, "calcium": 800, "phosphorus": 800, "magnesium": 280, 
 "iron": 10, "zinc": 12, "selenium": 55, "fat": 70}]
 
-// passport.use(new LocalStrategy({ usernameField: 'username', passwordField: 'password' },
-//     (username, password, done) => {
-//         User.findOne({ username: username }, (err, user) => {
-//             if (err) { return done(err); }
-//             if (!user) {
-//                 return done(null, false, {message: { success: false, message: 'Incorrect username.' }});
-//             }
+passport.use(new LocalStrategy({ usernameField: 'username', passwordField: 'password' },
+    (username, password, done) => {
+        User.findOne({ username: username }, (err, user) => {
+            if (err) { return done(err); }
+            if (!user) {
+                return done(null, false, {message: { success: false, message: 'Incorrect username.' }});
+            }
 
-//             bcrypt.compare(password, user.password, (err, result) => {
+            bcrypt.compare(password, user.password, (err, result) => {
 
-//                 if (result) {
-//                     console.log("logged in");
-//                     return done(null, user);
-//                 }
-//                 else {
-//                     console.log("login failed");
-//                     return done(null, false, {message: { success: false, message: "Incorrect password." }});
-//                 }
-//             });
-//         });
-// }));
-
-// passport.serializeUser((user, done) => {
-//     done(null, user.id);
-// });
-
-// passport.deserializeUser((id, done) => {
-//     User.findById(id, (err, user) => {
-//         done(err, user);
-//     });
-// });
+                if (result) {
+                    console.log("logged in");
+                    return done(null, user);
+                }
+                else {
+                    console.log("login failed");
+                    return done(null, false, {message: { success: false, message: "Incorrect password." }});
+                }
+            });
+        });
+    }));
 
 
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
 
-// exports.login_user_post = (req, res, next) => {
+passport.deserializeUser((id, done) => {
+    User.findById(id, (err, user) => {
+        done(err, user);
+    });
+});
 
-//     console.log('try to login');
+exports.login_user_post = (req, res, next) => {
 
-//     passport.authenticate('local', {badRequestMessage: {success: false, message: "Please enter username and password."}, session: true}, 
-//     function (err, user, info)
-//     {
-//         if (err)
-//         {
-//             return res.status(401).json(err)
-//         }
-        
-//         if (!user)
-//         {
-//             return res.status(401).json(info)
-//         }
+    console.log('try to login');
 
-//         req.logIn(user, function (err)
-//         {
-//             if (err)
-//             {
-//                 return next(err)
-//             }
-//             return res.send(user)
-//         });
-//     })(req, res, next)
-// };
-
-exports.login_user_post = (req, res) => {
-    console.log("try to login")
-    const { errors, isValid } = validateLoginInput(req.body)
-
-
-    if (!isValid)
+    passport.authenticate('local', {badRequestMessage: {success: false, message: "Please enter username and password."}}, 
+    function (err, user, info)
     {
-        return res.status(400).json(errors)
-    }
-
-    console.log("valid login attempt")
-
-    const username = req.body.username
-    const password = req.body.password
-
-    User.findOne({ username })
-    .then(user => {
-        if(!user)
+        if (err)
         {
-            return res.status(404).json({message: "Username not found."})
+            return res.status(401).json(err)
+        }
+        
+        if (!user)
+        {
+            return res.status(401).json(info)
         }
 
-        bcrypt.compare(password, user.password)
-        .then(isMatch => {
-            if (isMatch){
-
-                
-                const payload = 
-                {
-                    id: user.id,
-                    //firstname: user.firstname
-                }
-
-                jwt.sign(payload, process.env.SECRETORKEY,
-                    {
-                        expiresIn: 7 * 24 * 60 * 60
-                    },
-                    (err, token) => {
-                        res.json({
-                            success: true,
-                            token: "Bearer " + token
-                        })
-                    })
-                }
-            else{
-                return res.status(400).json({message: "Incorrect password"})
-            }
-        })
-    })
-}
-
-exports.create_user_post = (req, res) => {
-    const { errors, isValid } = validateCreateAccInput(req.body)
-
-    if (!isValid)
-    {
-        console.log("couldn't create user")
-        return res.status(400).json(errors)
-    }
-
-    User.findOne({username: req.body.username })
-    .then(user => {
-        if (user)
+        req.logIn(user, function (err)
         {
-            return res.status(400).json({error: "Username already in use"})
-        } 
+            if (err)
+            {
+                return next(err)
+            }
+            return res.send(user)
+        });
+    })(req, res, next)
+};
+
+const validateUserCreation =
+    [
+        validator.body('firstname').trim().isLength({ min: 1 }).withMessage('Must have a firstname').isAlpha()
+        .withMessage('First name can only contain letters'),
+
+        validator.body('username').trim().isAlphanumeric().withMessage("Username can only contain letters and numbers")
+        .isLength({ min: 5, max: 15 }).withMessage("Username must be between 4 and 15 characters")
+            .custom((value, { req }) => {
+                return new Promise((resolve, reject) => {
+                    User.findOne({ username: req.body.username }, function (err, user) {
+                        if (err) {
+                            reject(new Error('MongoDB Atlas Error'))
+                        }
+                        if (Boolean(user)) {
+                            reject(new Error('Username already in use'))
+                        }
+                        resolve(true)
+                    });
+                });
+            }),
+
+        validator.body('password', 'Password must be 8 or more characters').isLength({ min: 8 }),
+
+        validator.body('conf_password', 'Passwords do not match, try again').custom(function (value, { req }) {
+            if (value === req.body.password) {
+                return true;
+            }
+            else {
+                throw new Error("Passwords do not match");
+            }
+        }),
+
+        validator.body('age').isIn(["11-14", "15-18", "19-24", "25-50", "51+"]),
+
+        validator.body('gender').isIn(["male", "female"]),
+
+        validator.check(['username', 'firstname', 'password', 'conf_password', 'age', 'gender']).escape()
+    ]
+
+exports.create_user_post = [validateUserCreation, (req, res) => {
+    if (validator.validationResult(req).isEmpty())
+    {
+        var plainTextPassword = req.body.password;
+
+    bcrypt.hash(plainTextPassword, 10, (err, hash) => {
+        var gender = req.body.gender
+        var age = req.body.age
+        var nutReqs = []
+
+        if (gender === "male")
+        {
+            if (age === "11-14")
+            {
+                nutReqs = males11to14
+            }
+            else if (age === "15-18")
+            {
+                nutReqs = males15to18
+            }
+            else if (age === "19-24")
+            {
+                nutReqs = males19to24
+            }
+            else if (age === "25-50")
+            {
+                nutReqs = males25to50
+            }
+            else
+            {
+                nutReqs = malesOver51
+            }
+        }
         else
         {
-            var plainTextPassword = req.body.password;
-
-            bcrypt.hash(plainTextPassword, 10, (err, hash) => {
-                var gender = req.body.gender
-                var age = req.body.age
-                var nutReqs = []
-
-                if (gender === "male")
-                {
-                    if (age === "11-14")
-                    {
-                        nutReqs = males11to14
-                    }
-                    else if (age === "15-18")
-                    {
-                        nutReqs = males15to18
-                    }
-                    else if (age === "19-24")
-                    {
-                        nutReqs = males19to24
-                    }
-                    else if (age === "25-50")
-                    {
-                        nutReqs = males25to50
-                    }
-                    else
-                    {
-                        nutReqs = malesOver51
-                    }
-                }
-                else
-                {
-                    if (age === "11-14")
-                    {
-                        nutReqs = females11to14
-                    }
-                    else if (age === "15-18")
-                    {
-                        nutReqs = females15to18
-                    }
-                    else if (age === "19-24")
-                    {
-                        nutReqs = females19to24
-                    }
-                    else if (age === "25-50")
-                    {
-                        nutReqs = females25to50
-                    }
-                    else
-                    {
-                        nutReqs = femalesOver51
-                    }
-                }
-
-                var user = new User({
-                    username: req.body.username,
-                    password: hash,
-                    firstname: req.body.firstname,
-                    entries: [],
-                    requirements: nutReqs,
-                    age: age,
-                    gender: gender
-                });
-                user.save()
-                .catch(err => {
-                    console.log('Error ' + err);
-                }
-
-                );
-                console.log('user created')
-                res.json(user);
-            });
+            if (age === "11-14")
+            {
+                nutReqs = females11to14
+            }
+            else if (age === "15-18")
+            {
+                nutReqs = females15to18
+            }
+            else if (age === "19-24")
+            {
+                nutReqs = females19to24
+            }
+            else if (age === "25-50")
+            {
+                nutReqs = females25to50
+            }
+            else
+            {
+                nutReqs = femalesOver51
+            }
         }
-        
-    })    
-}
+
+        var user = new User({
+            username: req.body.username,
+            password: hash,
+            firstname: req.body.firstname,
+            entries: [],
+            requirements: nutReqs,
+            age: age,
+            gender: gender
+        });
+        user.save()
+        .catch(err => {
+            console.log('Error ' + err);
+        }
+
+        );
+        console.log('user created')
+        res.json(user);
+    });
+    }
+    else
+    {
+        console.log("couldn't create user")
+        res.send(validator.validationResult(req).errors[0].msg)
+    }
+    
+}]

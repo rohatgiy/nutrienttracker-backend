@@ -14,29 +14,23 @@ const uri = process.env.ATLAS_URI;
 var app = express();
 var router = express.Router();
 
+app.use(cors({credentials: true, origin: "http://localhost:3000"}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(session(
+    {
+    secret: process.env.SECRET, 
+    resave: false, 
+    saveUninitialized: false,
+    cookie:
+    {
+        secure: false,
+        httpOnly: false,
+        maxAge: 86400000
+    }
+}));
 app.use(passport.initialize());
-
-require("./config/passport")(passport);
-
-app.use(cors({credentials: true, origin: "http://localhost:3000"}));
-
-// app.use(session(
-//     {
-//     secret: process.env.SECRET, 
-//     resave: false, 
-//     saveUninitialized: false,
-//     cookie:
-//     {
-//         secure: false,
-//         httpOnly: false,
-//         maxAge: 24*60*60*1000
-//     }
-// }));
-// app.use(passport.session());
-
-
+app.use(passport.session());
 
 
 /*
