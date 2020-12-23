@@ -7,6 +7,7 @@ var userSchema = new Schema({
     password: {type: String, required: true, minlength: 8},
     firstname: {type: String, required: true, minlength: 1},
     entries:[entrySchema],
+    requirements: [],
     gender: {type: String, enum: ["male", "female"], required: true},
     age: {type: String, enum: ["11-14", "15-18", "19-24", "25-50", "51+"], required: true}
 });

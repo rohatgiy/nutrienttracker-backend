@@ -1,7 +1,15 @@
 const router = require('express').Router();
 
 router.get('/', (req, res, next) => {
-    res.send('this is the home page');
+    if (req.user)
+    {
+        res.send(req.user)
+    } 
+    else
+    {
+        res.redirect("/login");
+    }
+    
 });
 
 module.exports = router;
