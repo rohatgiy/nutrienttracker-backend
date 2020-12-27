@@ -23,6 +23,13 @@ var getNutrients = function (req, res, next)
             return console.log(err)
         }
         obj = JSON.parse(data);
+        console.log(req.body.food_code, req.body.serving_index)
+
+        if (req.body.food_code === null)
+        {
+            res.send({success: false, message: "Please choose a food and serving size."})
+        }
+
         var check = Number(req.body.food_code);
         var serving = Number(req.body.serving_index);
         var found = false;
@@ -64,11 +71,11 @@ router.use(express.json());
 router.get('/', (req, res, next) => {
     if (req.user)
     {
-        res.send('you can add food here');
+        res.send(req.user)
     }
     else
     {
-        res.redirect('/login');
+        res.send({});
     }
 });
 
@@ -76,7 +83,8 @@ router.get('/', (req, res, next) => {
 router.post('/', getNutrients, (req, res, next) => {
     if (!req.user)
     {
-        res.redirect('/login');
+        console.log("not logged in")
+        res.end()
     }
     else
     {
@@ -117,7 +125,7 @@ router.post('/', getNutrients, (req, res, next) => {
             req.user.entries.push(entry);
             req.user.save();
         }
-        res.json(req.user);
+        res.send({success: true, message: "Added!"});
     }
 });
 

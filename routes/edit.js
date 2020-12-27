@@ -1,10 +1,12 @@
 const Entry = require('../models/entry');
 const fs = require('fs');
 const router = require('express').Router();
+const isEmpty = require('is-empty')
 
 var setup = function (req, res, next)
 {
     res.locals.delete_index = req.body.delete_index;
+    console.log(req.body.delete_index)
 
     var entries = req.user.entries;
     var date = new Date();
@@ -26,14 +28,20 @@ var getBaseNutrients = function (req, res, next)
         }
         obj = JSON.parse(data);
         var check = res.locals.temp_food_code;
+        var nutrient_amounts = [];
+        
         for (i = 0; i < obj.length; ++i)
         {
+            
             if (obj[i].food_code === check)
             {
-                nutrient_amounts = [];
                 for (j = 0; j < obj[i].nutrients.length; ++j)
                 {
-                    nutrient_amounts.push(obj[i].nutrients[j].nutrient_amount);
+                    nutrient_amounts.push(
+                        {
+                            name: obj[i].nutrients[j].nutrient_name,
+                            amt: obj[i].nutrients[j].nutrient_amount
+                        });
                 }
             }
         }
@@ -72,7 +80,6 @@ router.post('/', setup, getBaseNutrients, (req, res, next) => {
    else
    {
        var delete_index = res.locals.delete_index;
-       console.log('the delete index is: ' + delete_index)
        var entries = req.user.entries;
        var date = new Date();
    
@@ -81,15 +88,37 @@ router.post('/', setup, getBaseNutrients, (req, res, next) => {
        {
            var today = entries[entries.length-1];
            var baseNutrients = res.locals.baseNutrients;
-           for (i = 0; i < today.nutrients.length; ++i)
-           {
-               today.nutrients[i].amount -= today.conversion_factors[delete_index]*baseNutrients[i];
-           }
+           console.log(baseNutrients)
            today.food_names.splice(delete_index, 1);
-           today.food_codes.splice(delete_index, 1);
-           today.conversion_factors.splice(delete_index, 1);
+           
+
+           if (isEmpty(today.food_names))
+           {
+               for (i = 0; i < today.nutrients.length; ++i)
+               {
+                   today.nutrients[i].amount = 0
+               }
+               today.food_codes.splice(delete_index, 1);
+               today.conversion_factors.splice(delete_index, 1);
+           }
+           else
+           {
+                for (i = 0; i < today.nutrients.length; ++i)
+                {
+                    for (j = 0; j < baseNutrients.length; ++j)
+                    {
+                        if (today.nutrients[i].nutrient === baseNutrients[j].name)
+                        {
+                            today.nutrients[i].amount -= today.conversion_factors[delete_index]*baseNutrients[j].amt
+                        }
+                    }
+                }
+                today.food_codes.splice(delete_index, 1);
+                today.conversion_factors.splice(delete_index, 1);
+           }   
        }
        req.user.save();
+       console.log("deleted")
        res.json(req.user);
    }
 })
