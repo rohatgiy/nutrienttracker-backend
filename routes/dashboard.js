@@ -11,9 +11,11 @@ router.get('/',  (req, res, next) => {
         {
             if (req.user.entries[i].date.getTime() === new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime())
             {
-                res.send({entry: req.user.entries[i], reqs: req.user.requirements[0]});
+                res.send({entry: req.user.entries[i], reqs: req.user.requirements[0], name:req.user.firstname});
             }
         }
+        res.send({entry: {food_names: [], food_codes: [], conversion_factors: [], nutrients: [], date: ""}, 
+        reqs: req.user.requirements[0], name: req.user.firstname})
     }
     else
     {

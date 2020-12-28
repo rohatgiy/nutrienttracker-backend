@@ -125,7 +125,7 @@ router.post('/', getNutrients, (req, res, next) => {
             req.user.entries.push(entry);
             req.user.save();
         }
-        res.send({success: true, message: "Added!"});
+        res.send({name: req.user.firstname, success: true, message: "Added!"});
     }
 });
 

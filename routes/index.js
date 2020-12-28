@@ -7,7 +7,7 @@ router.get('/', (req, res, next) => {
     } 
     else
     {
-        res.redirect("/login");
+        res.send({});
     }
     
 });
