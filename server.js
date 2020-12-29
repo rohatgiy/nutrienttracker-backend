@@ -59,48 +59,39 @@ mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedT
 
 global.db = mongoose.connection;
 
-// --> /
-const indexRouter = require('./routes/index');
-app.use('/', indexRouter);
+const userRouter = require("./routes/api/user")
+app.use("/api/user", userRouter)
 
 // --> /add
-const addRouter = require('./routes/add');
-app.use('/add', addRouter);
-
-// --> /api
-const apiRouter = require('./routes/api');
-app.use('/api', apiRouter)
+const addRouter = require('./routes/api/add');
+app.use('/api/add', addRouter);
 
 // --> /edit
-const editRouter = require('./routes/edit');
-app.use('/edit', editRouter);
+const editRouter = require('./routes/api/delete');
+app.use('/api/delete', editRouter);
 
 // --> /dashboard
-const dashboardRouter = require('./routes/dashboard');
-app.use('/dashboard', dashboardRouter);
+const dashboardRouter = require('./routes/api/today');
+app.use('/api/today', dashboardRouter);
 
 // --> /history
-const historyRouter = require('./routes/history');
-app.use('/history', historyRouter);
+const historyRouter = require('./routes/api/history');
+app.use('/api/history', historyRouter);
 
 // --> /login
-const loginRouter = require('./routes/login');
-app.use('/login', loginRouter);
+const loginRouter = require('./routes/api/login');
+app.use('/api/login', loginRouter);
 
 // --> /createacc
-const createaccRouter = require('./routes/createacc');
-app.use('/createacc', createaccRouter);
+const createaccRouter = require('./routes/api/register');
+app.use('/api/register', createaccRouter);
 
 // --> /editacc
-const editaccRouter = require('./routes/editacc');
-app.use('/editacc', editaccRouter);
+const editaccRouter = require('./routes/api/edit');
+app.use('/api/edit', editaccRouter);
 
-// --> /test
-const testRouter = require('./routes/test');
-app.use('/test', testRouter);
-
-const logoutRouter = require("./routes/logout");
-app.use('/logout', logoutRouter);
+const logoutRouter = require("./routes/api/logout");
+app.use('/api/logout', logoutRouter);
 
 
 app.listen(PORT, () => {

@@ -1,10 +1,8 @@
 const router = require('express').Router();
-var Entry = require('../models/entry');
-const e = require('express');
 
 date = new Date();
 
-router.get('/',  (req, res, next) => {
+router.post('/',  (req, res, next) => {
     if (req.user)
     {
         var body = {entry: {food_names: [], food_codes: [], conversion_factors: [], nutrients: [], date: ""}, 
@@ -20,7 +18,7 @@ router.get('/',  (req, res, next) => {
     }
     else
     {
-        res.redirect('/login');
+        res.send({});
     }
 });
 

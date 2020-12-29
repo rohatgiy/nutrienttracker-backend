@@ -64,23 +64,6 @@ const femalesOver51 = [{"Energy (kcal)":1900,"Protein":50, "Retinol": 800, "Vita
 "Magnesium, Mg": 280, 
 "Iron, Fe": 10, "Zinc, Zn": 12, "Selenium, Se": 55, "Total Fat": 70}]
 
-router.get('/', (req, res, next) => {
-    /*
-        1. check if user is logged in
-        2. fetch the user's info from db
-        3. allow user to update their info
-    */
-
-    if (req.user)
-    {
-        res.send(req.user);
-    }
-    else
-    {
-        res.send({});   
-    }
-});
-
 router.post('/', (req, res, next) => {
      /*
         1. send the updated info to the db
@@ -146,7 +129,7 @@ router.post('/', (req, res, next) => {
     }
     else
     {
-        res.redirect('/login');
+        res.send({})
     }
 });
 

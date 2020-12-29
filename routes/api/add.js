@@ -2,7 +2,8 @@ const express = require('express');
 const router = require('express').Router();
 const fs = require('fs');
 const API_KEY = process.env.API_KEY;
-var Entry = require('../models/entry');
+var Entry = require('../../models/entry');
+router.use(express.json());
 
 // energy (kcal) is calories
 // retinol is vit a
@@ -25,7 +26,6 @@ var getNutrients = function (req, res, next)
             return console.log(err)
         }
         obj = JSON.parse(data);
-        console.log(req.body.food_code, req.body.serving_index)
 
         if (req.body.food_code === null)
         {
@@ -67,25 +67,10 @@ var getNutrients = function (req, res, next)
     })
 }
 
-router.use(express.json());
-
-router.get('/', (req, res, next) => {
-    if (req.user)
-    {
-        res.send(req.user)
-    }
-    else
-    {
-        res.send({});
-    }
-});
-
-
 router.post('/', getNutrients, (req, res, next) => {
     if (!req.user)
     {
-        console.log("not logged in")
-        res.end()
+        res.send({})
     }
     else
     {
@@ -127,13 +112,11 @@ router.post('/', getNutrients, (req, res, next) => {
                     if (nutrients[i].nutrient === req.user.entries[req.user.entries.length-1].nutrients[j].nutrient)
                     {
                         found = true
-                        // console.log('in db: ' + req.user.entries[req.user.entries.length-1].nutrients[j].amount);
-                        // console.log('to add: ' + nutrients[i].amount);
+                        
                         req.user.entries[req.user.entries.length-1].nutrients[j].amount += nutrients[i].amount;
                     }
                     else if (!found && j === req.user.entries[req.user.entries.length-1].nutrients.length-1)
                     {
-                        console.log("couldn't find", nutrients[i].nutrient)
                         req.user.entries[req.user.entries.length-1].nutrients.push(
                             {
                                 nutrient: nutrients[i].nutrient,
@@ -147,16 +130,15 @@ router.post('/', getNutrients, (req, res, next) => {
 
             for (i = 0; i < extra.length; ++i)
             {
+                var found = false
                 for (k=0; k < req.user.entries[req.user.entries.length-1].nutrients.length; ++k)
                 {
-                    var found = false
                     if (extra[i].name === req.user.entries[req.user.entries.length-1].nutrients[k].nutrient)
                     {
                         found = true
                     }
                     else if (k === req.user.entries[req.user.entries.length-1].nutrients.length-1 && !found)
                     {
-                        console.log("pushing extra", extra[i].name)
                         req.user.entries[req.user.entries.length-1].nutrients.push(
                             {
                                 nutrient: extra[i].name,

@@ -1,10 +1,10 @@
-const Entry = require('../models/entry');
+const Entry = require('../../models/entry');
 const router = require('express').Router();
 // need to make sure entries get added to users array
 
 var date = new Date();
 
-router.get('/', (req, res, next) => {
+router.post('/', (req, res, next) => {
     if (req.user)
     {
         var history = [];
@@ -19,7 +19,7 @@ router.get('/', (req, res, next) => {
     }
     else
     {
-        res.redirect('/login');
+        res.send({});
     }
 });
 
