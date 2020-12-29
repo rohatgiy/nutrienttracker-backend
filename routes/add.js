@@ -9,11 +9,13 @@ var Entry = require('../models/entry');
 // tocopherol is vit e
 // search up fat limits
 
-const tracked = ['Energy (kcal)' /* kcal */, 'Protein' /* g */, 'Retinol' /* µg */, 'Vitamin D' /* µg */, 
-'Tocopherol, alpha' /* mg */, 'Vitamin K' /* µg */, 'Vitamin C' /* mg */, 'Thiamin' /* mg */, 'Riboflavin' /* mg */, 
-'Niacin' /* mg */, 'Vitamin B-6' /* mg */, 'Folate, naturally occurring' /* µg */, 'Vitamin B-12' /* µg */, 
-'Calcium, Ca' /* mg */, 'Phosphorus, P' /* mg */, 'Magnesium, Mg' /* mg */, 'Iron, Fe' /* mg */, 'Zinc, Zn' /* mg */,
-'Selenium, Se' /* µg */, 'Total Fat' /* g */];
+const tracked = [{name: 'Energy (kcal)', unit: "kCal"}, {name: 'Protein', unit:"g" }, {name: 'Retinol', unit:"µg"}, 
+{name: 'Vitamin D', unit: "µg"}, {name: 'Tocopherol, alpha', unit: "mg"}, {name: 'Vitamin K', unit: "µg"}, 
+{name: 'Vitamin C', unit: "mg"}, {name: 'Thiamin', unit: "mg"}, {name: 'Riboflavin', unit: "mg"}, 
+{name: 'Niacin', unit: "mg"}, {name: 'Vitamin B-6', unit: "mg"}, {name: 'Folate, naturally occurring', unit: "µg"}, 
+{name: 'Vitamin B-12', unit: "µg"}, {name: 'Calcium, Ca', unit: "mg"}, {name: 'Phosphorus, P', unit: "mg"}, 
+{name: 'Magnesium, Mg', unit: "mg"}, {name: 'Iron, Fe', unit: "mg"}, {name: 'Zinc, Zn', unit: "mg"},
+{name: 'Selenium, Se', unit: "µg"}, {name: 'Total Fat', unit: "g"}];
 
 var getNutrients = function (req, res, next)
 {
@@ -33,7 +35,6 @@ var getNutrients = function (req, res, next)
         var check = Number(req.body.food_code);
         var serving = Number(req.body.serving_index);
         var found = false;
-        var sendString = "";
         for (i = 0; i < obj.length; ++i)
         {
             if (obj[i].food_code === check)
@@ -93,27 +94,105 @@ router.post('/', getNutrients, (req, res, next) => {
 
         var date = new Date();
 
+        var extra = []
+
+        for (i = 0; i < tracked.length; ++i)
+        {
+            var found = false
+            for (j =0; j < nutrients.length; ++j)
+            {
+                if (tracked[i].name === nutrients[j].nutrient)
+                {
+                    found = true
+                }
+                else if (j===nutrients.length-1 && !found)
+                {
+                    extra.push(tracked[i])
+                }
+            }
+        }
+
+
         if (today_entries.length > 0 && today_entries[today_entries.length-1].date.getTime() === new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime())
         {
             today_entries[today_entries.length-1].food_codes.push(res.locals.food_obj.food_code);
             today_entries[today_entries.length-1].food_names.push(res.locals.food_obj.food_name+ ', '+ res.locals.food_obj.serving_size);
             today_entries[today_entries.length-1].conversion_factors.push(res.locals.food_obj.conversion_factor);
+
             for (i = 0; i < nutrients.length; ++i)
             {
+                var found = false
                 for (j = 0; j < req.user.entries[req.user.entries.length-1].nutrients.length; ++j)
                 {
                     if (nutrients[i].nutrient === req.user.entries[req.user.entries.length-1].nutrients[j].nutrient)
                     {
+                        found = true
                         // console.log('in db: ' + req.user.entries[req.user.entries.length-1].nutrients[j].amount);
                         // console.log('to add: ' + nutrients[i].amount);
                         req.user.entries[req.user.entries.length-1].nutrients[j].amount += nutrients[i].amount;
                     }
+                    else if (!found && j === req.user.entries[req.user.entries.length-1].nutrients.length-1)
+                    {
+                        console.log("couldn't find", nutrients[i].nutrient)
+                        req.user.entries[req.user.entries.length-1].nutrients.push(
+                            {
+                                nutrient: nutrients[i].nutrient,
+                                amount: nutrients[i].amount,
+                                unit: nutrients[i].unit
+                            }
+                        )
+                    }
                 }
             }
+
+            for (i = 0; i < extra.length; ++i)
+            {
+                for (k=0; k < req.user.entries[req.user.entries.length-1].nutrients.length; ++k)
+                {
+                    var found = false
+                    if (extra[i].name === req.user.entries[req.user.entries.length-1].nutrients[k].nutrient)
+                    {
+                        found = true
+                    }
+                    else if (k === req.user.entries[req.user.entries.length-1].nutrients.length-1 && !found)
+                    {
+                        console.log("pushing extra", extra[i].name)
+                        req.user.entries[req.user.entries.length-1].nutrients.push(
+                            {
+                                nutrient: extra[i].name,
+                                amount: 0,
+                                unit: extra[i].unit
+                            }
+                        )
+                    }
+                }
+            }
+
             req.user.save();          
         }
         else
         {
+            for (i = 0; i < extra.length; ++i)
+            {
+                var found = false
+                for (j = 0; j < nutrients.length; ++j)
+                {
+                    if (extra[i].name === nutrients[j].nutrient)
+                    {
+                        found = true
+                    }
+                    else if (!found && j === nutrients.length-1)
+                    {
+                        nutrients.push(
+                            {
+                                nutrient: extra[i].name,
+                                amount: 0,
+                                unit: extra[i].unit
+                            }
+                        )
+                    }
+                }
+            }
             var entry = new Entry(
                 {
                     food_codes: [res.locals.food_obj.food_code],
